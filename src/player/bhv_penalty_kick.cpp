@@ -68,7 +68,7 @@ using namespace rcsc;
 
  */
 bool
-Bhv_PenaltyKick::execute( PlayerAgent * agent )
+Bhv_PenaltyKick_Default::execute( PlayerAgent * agent )
 {
     const WorldModel & wm = agent->world();
     const PenaltyKickState * state = wm.penaltyKickState();
@@ -163,7 +163,7 @@ Bhv_PenaltyKick::execute( PlayerAgent * agent )
 
  */
 bool
-Bhv_PenaltyKick::doKickerWait( PlayerAgent * agent )
+Bhv_PenaltyKick_Default::doKickerWait( PlayerAgent * agent )
 {
 #if 1
     //int myid = agent->world().self().unum() - 1;
@@ -249,7 +249,7 @@ Bhv_PenaltyKick::doKickerWait( PlayerAgent * agent )
 
  */
 bool
-Bhv_PenaltyKick::doKickerSetup( PlayerAgent * agent )
+Bhv_PenaltyKick_Default::doKickerSetup( PlayerAgent * agent )
 {
     const Vector2D goal_c = ServerParam::i().theirTeamGoalPos();
     const AbstractPlayerObject * opp_goalie = agent->world().getTheirGoalie();
@@ -277,7 +277,7 @@ Bhv_PenaltyKick::doKickerSetup( PlayerAgent * agent )
 
  */
 bool
-Bhv_PenaltyKick::doKickerReady( PlayerAgent * agent )
+Bhv_PenaltyKick_Default::doKickerReady( PlayerAgent * agent )
 {
     const WorldModel & wm = agent->world();
     const PenaltyKickState * state = wm.penaltyKickState();
@@ -302,7 +302,7 @@ Bhv_PenaltyKick::doKickerReady( PlayerAgent * agent )
 
  */
 bool
-Bhv_PenaltyKick::doKicker( PlayerAgent * agent )
+Bhv_PenaltyKick_Default::doKicker( PlayerAgent * agent )
 {
     //
     // server does NOT allow multiple kicks
@@ -364,7 +364,7 @@ Bhv_PenaltyKick::doKicker( PlayerAgent * agent )
 
  */
 bool
-Bhv_PenaltyKick::doOneKickShoot( PlayerAgent* agent )
+Bhv_PenaltyKick_Default::doOneKickShoot( PlayerAgent* agent )
 {
     const double ball_speed = agent->world().ball().vel().r();
     // ball is moveng --> kick has taken.
@@ -439,7 +439,7 @@ Bhv_PenaltyKick::doOneKickShoot( PlayerAgent* agent )
 
  */
 bool
-Bhv_PenaltyKick::doShoot( PlayerAgent * agent )
+Bhv_PenaltyKick_Default::doShoot( PlayerAgent * agent )
 {
     const WorldModel & wm = agent->world();
     const PenaltyKickState * state = wm.penaltyKickState();
@@ -480,7 +480,7 @@ Bhv_PenaltyKick::doShoot( PlayerAgent * agent )
 
  */
 bool
-Bhv_PenaltyKick::getShootTarget( const PlayerAgent * agent,
+Bhv_PenaltyKick_Default::getShootTarget( const PlayerAgent * agent,
                                  Vector2D * point,
                                  double * first_speed )
 {
@@ -620,7 +620,7 @@ Bhv_PenaltyKick::getShootTarget( const PlayerAgent * agent,
   dribble to the shootable point
 */
 bool
-Bhv_PenaltyKick::doDribble( PlayerAgent * agent )
+Bhv_PenaltyKick_Default::doDribble( PlayerAgent * agent )
 {
     static const int CONTINUAL_COUNT = 20;
     static int S_target_continual_count = CONTINUAL_COUNT;
@@ -840,7 +840,7 @@ Bhv_PenaltyKick::doDribble( PlayerAgent * agent )
 
  */
 bool
-Bhv_PenaltyKick::doGoalieWait( PlayerAgent* agent )
+Bhv_PenaltyKick_Default::doGoalieWait( PlayerAgent* agent )
 {
 #if 0
     Vector2D wait_pos( - ServerParam::i().pitchHalfLength() - 2.0, -25.0 );
@@ -891,7 +891,7 @@ Bhv_PenaltyKick::doGoalieWait( PlayerAgent* agent )
 
  */
 bool
-Bhv_PenaltyKick::doGoalieSetup( PlayerAgent * agent )
+Bhv_PenaltyKick_Default::doGoalieSetup( PlayerAgent * agent )
 {
     Vector2D move_point( ServerParam::i().ourTeamGoalLineX() + ServerParam::i().penMaxGoalieDistX() - 0.1,
                          0.0 );
@@ -922,7 +922,7 @@ Bhv_PenaltyKick::doGoalieSetup( PlayerAgent * agent )
 
  */
 bool
-Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
+Bhv_PenaltyKick_Default::doGoalie( PlayerAgent* agent )
 {
     const ServerParam & SP = ServerParam::i();
     const WorldModel & wm = agent->world();
@@ -974,7 +974,7 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
 
  */
 bool
-Bhv_PenaltyKick::doGoalieBasicMove( PlayerAgent * agent )
+Bhv_PenaltyKick_Default::doGoalieBasicMove( PlayerAgent * agent )
 {
     const ServerParam & SP = ServerParam::i();
     const WorldModel & wm = agent->world();
@@ -1063,7 +1063,7 @@ Bhv_PenaltyKick::doGoalieBasicMove( PlayerAgent * agent )
   if ( onfiled_side != our_side ), these coordinates must be reversed.
 */
 Vector2D
-Bhv_PenaltyKick::getGoalieMovePos( const Vector2D & ball_pos,
+Bhv_PenaltyKick_Default::getGoalieMovePos( const Vector2D & ball_pos,
                                    const Vector2D & my_pos )
 {
     const ServerParam & SP = ServerParam::i();
@@ -1182,7 +1182,7 @@ Bhv_PenaltyKick::getGoalieMovePos( const Vector2D & ball_pos,
 
  */
 bool
-Bhv_PenaltyKick::doGoalieSlideChase( PlayerAgent* agent )
+Bhv_PenaltyKick_Default::doGoalieSlideChase( PlayerAgent* agent )
 {
     const WorldModel & wm = agent->world();
 

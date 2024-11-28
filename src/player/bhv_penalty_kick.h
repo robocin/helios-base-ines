@@ -30,7 +30,9 @@
 #include <rcsc/player/soccer_action.h>
 #include <rcsc/geom/vector_2d.h>
 
-class Bhv_PenaltyKick
+#include "bhv_penalty_kick_kicker.h"
+
+class Bhv_PenaltyKick_Default
     : public rcsc::SoccerBehavior {
 private:
 
@@ -65,5 +67,7 @@ private:
     bool isGoalieBallChaseSituation();
     bool doGoalieSlideChase( rcsc::PlayerAgent * agent );
 };
+
+using Bhv_PenaltyKick = BhvPenaltyKickKicker;
 
 #endif

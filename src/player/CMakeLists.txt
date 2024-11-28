@@ -79,6 +79,7 @@ add_executable(sample_player
   bhv_goalie_chase_ball.cpp
   bhv_goalie_free_kick.cpp
   bhv_penalty_kick.cpp
+  bhv_penalty_kick_kicker.cpp
   neck_default_intercept_neck.cpp
   neck_goalie_turn_neck.cpp
   neck_offensive_intercept_neck.cpp
