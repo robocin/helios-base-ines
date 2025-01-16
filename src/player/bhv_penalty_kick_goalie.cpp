@@ -610,19 +610,6 @@ namespace
 
 } // namespace
 
-BhvPenaltyKickKicker::InitialStateKicker::InitialStateKicker(my_context ctx) : my_base(ctx) {}
-
-BhvPenaltyKickKicker::InitialStateKicker::~InitialStateKicker() = default;
-
-sc::result BhvPenaltyKickKicker::InitialStateKicker::react(const Transition & /*unused*/)
-{
-#ifdef DEBUG_LOG
-    dlog.addText(Logger::ACTION, ": InitialStateKicker: Transition event received");
-#endif
-
-    return transit<SUpdateWorldModelKicker>();
-}
-
 // Máquina ter um world model que vai receber o valor do PlayerAgent.
 BhvPenaltyKickKicker::SUpdateWorldModelKicker::SUpdateWorldModelKicker(my_context ctx) : my_base(ctx) {}
 

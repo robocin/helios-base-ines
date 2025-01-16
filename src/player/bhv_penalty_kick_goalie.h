@@ -8,8 +8,32 @@
 #include <boost/statechart/transition.hpp>
 #include <rcsc/player/soccer_action.h>
 #include <rcsc/player/world_model.h>
+#include <rcsc/player/player_agent.h>
 
 namespace sc = boost::statechart;
+
+namespace RSFunc {
+    bool doCatch(rcsc::PlayerAgent* agent);
+    bool isInsidePenaltyArea(const rcsc::BallObject &ball);
+    bool isInCatchableDistance(const rcsc::BallObject &ball);
+}
+
+typedef struct point {
+    int x;
+    int y;
+} Point;
+
+namespace RSOutput {
+    bool doCatch(rcsc::PlayerAgent* agent);
+    bool doClearBall(rcsc::PlayerAgent* agent);
+    bool doTackle(rcsc::PlayerAgent *agent);
+    Point getBall(rcsc::PlayerAgent *agent) {
+        auto pos = agent->world().ball().pos();
+        Point _pos = {pos.x, pos.y};
+        return _pos;
+    }
+}
+
 
 class BhvPenaltyKickGoalie : rcsc::SoccerBehavior {
    public:
@@ -27,82 +51,135 @@ class BhvPenaltyKickGoalie : rcsc::SoccerBehavior {
        public:
         static inline bool stopTransition {false};
         rcsc::PlayerAgent* mAgent;
+        int count;
     };
 
     struct InitialStateGoalie : sc::state<InitialStateGoalie, GoalieStm> {
         using reactions = sc::custom_reaction<Transition>;
-        explicit InitialStateGoalie(my_context ctx);
-        ~InitialStateGoalie() override;
+        explicit InitialStateGoalie(my_context ctx) : my_base(ctx) {};
+        ~InitialStateGoalie() override = default;
+        sc::result react(const Transition&) {
+            return transit<SUpdateWorldModelGoalie>();
+        };
+    };
+
+    struct SUpdateWorldModelGoalie : sc::state<SUpdateWorldModelGoalie, GoalieStm> {
+        using reactions = sc::custom_reaction<Transition>;
+        explicit SUpdateWorldModelGoalie(my_context ctx) : my_base(ctx) {};
+        ~SUpdateWorldModelGoalie() override = default;
+        sc::result react(const Transition&) {
+            return transit<J1Goalie>();
+        };
+    };
+
+    struct J1Goalie : sc::state<J1Goalie, GoalieStm> {
+        using reactions = sc::custom_reaction<Transition>;
+        explicit J1Goalie(my_context ctx);
+        ~J1Goalie() override = default;
+        sc::result react(const Transition&) {
+            rcsc::PlayerAgent* agent = context<GoalieStm>().getAgent();
+            if(agent->world().gameMode().type() != rcsc::GameMode::PenaltyTaken_) {
+                return transit<FinalStateGoalie>();
+            }
+
+            return transit<SdoCatch>();
+        };
+    };
+
+    struct FinalStateGoalie : sc::state<FinalStateGoalie, GoalieStm> {
+        using reactions = sc::custom_reaction<Transition>;
+        explicit FinalStateGoalie(my_context ctx);
+        ~FinalStateGoalie() override;
+        sc::result react(const Transition&);
+    }; 
+
+    struct SdoCatch : sc::state<SdoCatch, GoalieStm> {
+        using reactions = sc::custom_reaction<Transition>;
+        SdoCatch(my_context ctx) : my_base(ctx) {
+            rcsc::PlayerAgent *agent = context<GoalieStm>().getAgent();
+        };
+        ~SdoCatch() override;
+        sc::result react(const Transition&){
+            return transit<J2Goalie>();
+        };
+    };
+
+    struct J2Goalie : sc::state<J2Goalie, GoalieStm> {
+        using reactions = sc::custom_reaction<Transition>;
+        explicit J2Goalie(my_context ctx) : my_base(ctx) {};
+        ~J2Goalie() override;
+        sc::result react(const Transition&) {
+            auto agent = context<GoalieStm>().getAgent();
+            auto &ball = agent->world().ball();
+
+            if(RSFunc::isInsidePenaltyArea(ball) && RSFunc::isInCatchableDistance(ball)) {
+                RSOutput::doCatch(agent);
+                return transit<FinalStateGoalie>();  
+            }
+
+            return transit<SClearBall>();
+        };
+    };
+
+    struct SClearBall: sc::state<SClearBall, GoalieStm> {
+        using reactions = sc::custom_reaction<Transition>;
+        explicit SClearBall(my_context ctx) : my_base(ctx) {};
+        ~SClearBall() override;
+        sc::result react(const Transition&) {
+            return transit<J4Goalie>();
+        };
+    };
+
+    struct J4Goalie : sc::state<J4Goalie, GoalieStm> {
+        using reactions = sc::custom_reaction<Transition>;
+        explicit J4Goalie(my_context ctx) : my_base(ctx) {};
+        ~J4Goalie() override;
+        sc::result react(const Transition&) {
+            auto agent = context<GoalieStm>().getAgent();
+            auto &wm = agent->world();
+            if(wm.self().isKickable()) {
+                RSOutput::doClearBall(agent);
+                return transit<J3Goalie>();  
+            }
+
+            return transit<SDoTackle>();
+        };
+    };
+
+    struct SDoTackle : sc::state<SDoTackle, GoalieStm> {
+        using reactions = sc::custom_reaction<Transition>;
+        explicit SDoTackle(my_context ctx) : my_base(ctx) {};
+        ~SDoTackle() override;
+        sc::result react(const Transition&) {
+            return transit<J5Goalie>();
+        };
+    };
+
+    struct J5Goalie : sc::state<J5Goalie, GoalieStm> {
+        using reactions = sc::custom_reaction<Transition>;
+        explicit J5Goalie(my_context ctx) : my_base(ctx) {};
+        ~J5Goalie() override;
+        sc::result react(const Transition&) {
+           //TODO: implement this
+        };
+    };
+    
+
+    struct J3Goalie: sc::state<J3Goalie, GoalieStm> { // EXEC JUNCTION
+        using reactions = sc::custom_reaction<Transition>;
+        explicit J3Goalie(my_context ctx) : my_base(ctx){};
+        ~J3Goalie() override = default;
+        sc::result react(const Transition&) {
+            return transit<FinalStateGoalie>();
+        }
+    };
+
+    struct UndefinedStateGoalie : sc::state<UndefinedStateGoalie, GoalieStm> {
+        using reactions = sc::custom_reaction<Transition>;
+        explicit UndefinedStateGoalie(my_context ctx);
+        ~UndefinedStateGoalie() override;
         sc::result react(const Transition&);
     };
 
-    struct SUpdateWorldModelKicker : sc::state<SUpdateWorldModelKicker, GoalieStm> {
-        using reactions = sc::custom_reaction<Transition>;
-        explicit SUpdateWorldModelKicker(my_context ctx);
-        ~SUpdateWorldModelKicker() override;
-        sc::result react(const Transition&);
-    };
 
-    struct J1Kicker : sc::state<J1Kicker, GoalieStm> {
-        using reactions = sc::custom_reaction<Transition>;
-        explicit J1Kicker(my_context ctx);
-        ~J1Kicker() override;
-        sc::result react(const Transition&);
-    };
-
-    struct FinalStateKicker : sc::state<FinalStateKicker, GoalieStm> {
-        using reactions = sc::custom_reaction<Transition>;
-        explicit FinalStateKicker(my_context ctx);
-        ~FinalStateKicker() override;
-        sc::result react(const Transition&);
-    };
-
-    struct SGoToBall : sc::state<SGoToBall, GoalieStm> {
-        using reactions = sc::custom_reaction<Transition>;
-        explicit SGoToBall(my_context ctx);
-        ~SGoToBall() override;
-        sc::result react(const Transition&);
-    };
-
-    struct J2Kicker : sc::state<J2Kicker, GoalieStm> {
-        using reactions = sc::custom_reaction<Transition>;
-        explicit J2Kicker(my_context ctx);
-        ~J2Kicker() override;
-        sc::result react(const Transition&);
-    };
-
-    struct SShoot : sc::state<SShoot, GoalieStm> {
-        using reactions = sc::custom_reaction<Transition>;
-        explicit SShoot(my_context ctx);
-        ~SShoot() override;
-        sc::result react(const Transition&);
-    };
-
-    struct J3Kicker : sc::state<J3Kicker, GoalieStm> {
-        using reactions = sc::custom_reaction<Transition>;
-        explicit J3Kicker(my_context ctx);
-        ~J3Kicker() override;
-        sc::result react(const Transition&);
-    };
-
-    struct SDribble : sc::state<SDribble, GoalieStm> {
-        using reactions = sc::custom_reaction<Transition>;
-        explicit SDribble(my_context ctx);
-        ~SDribble() override;
-        sc::result react(const Transition&);
-    };
-
-    struct J4Kicker : sc::state<J4Kicker, GoalieStm> {
-        using reactions = sc::custom_reaction<Transition>;
-        explicit J4Kicker(my_context ctx);
-        ~J4Kicker() override;
-        sc::result react(const Transition&);
-    };
-
-    struct UndefinedStateKicker : sc::state<UndefinedStateKicker, GoalieStm> {
-        using reactions = sc::custom_reaction<Transition>;
-        explicit UndefinedStateKicker(my_context ctx);
-        ~UndefinedStateKicker() override;
-        sc::result react(const Transition&);
-    };
 };
