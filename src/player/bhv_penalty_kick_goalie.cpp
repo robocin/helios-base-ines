@@ -611,213 +611,213 @@ namespace
 } // namespace
 
 // Máquina ter um world model que vai receber o valor do PlayerAgent.
-BhvPenaltyKickKicker::SUpdateWorldModelKicker::SUpdateWorldModelKicker(my_context ctx) : my_base(ctx) {}
+// BhvPenaltyKickKicker::SUpdateWorldModelKicker::SUpdateWorldModelKicker(my_context ctx) : my_base(ctx) {}
 
-BhvPenaltyKickKicker::SUpdateWorldModelKicker::~SUpdateWorldModelKicker() = default;
+// BhvPenaltyKickKicker::SUpdateWorldModelKicker::~SUpdateWorldModelKicker() = default;
 
-sc::result BhvPenaltyKickKicker::SUpdateWorldModelKicker::react(const Transition & /*unused*/)
-{
-#ifdef DEBUG_LOG
-    dlog.addText(Logger::ACTION, ": SUpdateWorldModelKicker: Transition event received");
-#endif
-    return transit<J1Kicker>();
-}
+// sc::result BhvPenaltyKickKicker::SUpdateWorldModelKicker::react(const Transition & /*unused*/)
+// {
+// #ifdef DEBUG_LOG
+//     dlog.addText(Logger::ACTION, ": SUpdateWorldModelKicker: Transition event received");
+// #endif
+//     return transit<J1Kicker>();
+// }
 
-BhvPenaltyKickKicker::J1Kicker::J1Kicker(my_context ctx) : my_base(ctx) {}
+// BhvPenaltyKickKicker::J1Kicker::J1Kicker(my_context ctx) : my_base(ctx) {}
 
-BhvPenaltyKickKicker::J1Kicker::~J1Kicker() = default;
+// BhvPenaltyKickKicker::J1Kicker::~J1Kicker() = default;
 
-sc::result BhvPenaltyKickKicker::J1Kicker::react(const Transition & /*unused*/)
-{
-#ifdef DEBUG_LOG
-    dlog.addText(Logger::ACTION, ": J1Kicker: Transition event received");
-#endif
-    return transit<SGoToBall>();
-}
+// sc::result BhvPenaltyKickKicker::J1Kicker::react(const Transition & /*unused*/)
+// {
+// #ifdef DEBUG_LOG
+//     dlog.addText(Logger::ACTION, ": J1Kicker: Transition event received");
+// #endif
+//     return transit<SGoToBall>();
+// }
 
-BhvPenaltyKickKicker::FinalStateKicker::FinalStateKicker(my_context ctx) : my_base(ctx) {}
+// BhvPenaltyKickKicker::FinalStateKicker::FinalStateKicker(my_context ctx) : my_base(ctx) {}
 
-BhvPenaltyKickKicker::FinalStateKicker::~FinalStateKicker() = default;
+// BhvPenaltyKickKicker::FinalStateKicker::~FinalStateKicker() = default;
 
-sc::result BhvPenaltyKickKicker::FinalStateKicker::react(const Transition & /*unused*/)
-{
-#ifdef DEBUG_LOG
-    dlog.addText(Logger::ACTION, ": FinalStateKicker: Transition event received");
-#endif
-    return transit<SGoToBall>();
-}
+// sc::result BhvPenaltyKickKicker::FinalStateKicker::react(const Transition & /*unused*/)
+// {
+// #ifdef DEBUG_LOG
+//     dlog.addText(Logger::ACTION, ": FinalStateKicker: Transition event received");
+// #endif
+//     return transit<SGoToBall>();
+// }
 
-BhvPenaltyKickKicker::SGoToBall::SGoToBall(my_context ctx) : my_base(ctx) {}
+// BhvPenaltyKickKicker::SGoToBall::SGoToBall(my_context ctx) : my_base(ctx) {}
 
-BhvPenaltyKickKicker::SGoToBall::~SGoToBall() = default;
+// BhvPenaltyKickKicker::SGoToBall::~SGoToBall() = default;
 
-sc::result BhvPenaltyKickKicker::SGoToBall::react(const Transition & /*unused*/)
-{
-#ifdef DEBUG_LOG
-    dlog.addText(Logger::ACTION, ": SGoToBall: Transition event received");
-#endif
-    return transit<J2Kicker>();
-}
+// sc::result BhvPenaltyKickKicker::SGoToBall::react(const Transition & /*unused*/)
+// {
+// #ifdef DEBUG_LOG
+//     dlog.addText(Logger::ACTION, ": SGoToBall: Transition event received");
+// #endif
+//     return transit<J2Kicker>();
+// }
 
-BhvPenaltyKickKicker::J2Kicker::J2Kicker(my_context ctx) : my_base(ctx) {}
+// BhvPenaltyKickKicker::J2Kicker::J2Kicker(my_context ctx) : my_base(ctx) {}
 
-BhvPenaltyKickKicker::J2Kicker::~J2Kicker() = default;
+// BhvPenaltyKickKicker::J2Kicker::~J2Kicker() = default;
 
-sc::result BhvPenaltyKickKicker::J2Kicker::react(const Transition & /*unused*/)
-{
-#ifdef DEBUG_LOG
-    dlog.addText(Logger::ACTION, ": J2Kicker: Transition event received");
-#endif
-    auto *agent = context<KickerStm>().getAgent();
-    const WorldModel &wm = agent->world();
+// sc::result BhvPenaltyKickKicker::J2Kicker::react(const Transition & /*unused*/)
+// {
+// #ifdef DEBUG_LOG
+//     dlog.addText(Logger::ACTION, ": J2Kicker: Transition event received");
+// #endif
+//     auto *agent = context<KickerStm>().getAgent();
+//     const WorldModel &wm = agent->world();
 
-    if (wm.gameMode().type() == GameMode::PenaltySetup_)
-    {
-        moveToBallPosition(agent);
-        BhvPenaltyKickKicker::KickerStm::stopTransition = true; // temporary
-        return transit<J4Kicker>();
-    }
+//     if (wm.gameMode().type() == GameMode::PenaltySetup_)
+//     {
+//         moveToBallPosition(agent);
+//         BhvPenaltyKickKicker::KickerStm::stopTransition = true; // temporary
+//         return transit<J4Kicker>();
+//     }
 
-    if (wm.gameMode().type() != GameMode::PenaltySetup_)
-    {
-        return transit<SShoot>();
-    }
+//     if (wm.gameMode().type() != GameMode::PenaltySetup_)
+//     {
+//         return transit<SShoot>();
+//     }
 
-    return transit<UndefinedStateKicker>();
-}
+//     return transit<UndefinedStateKicker>();
+// }
 
-BhvPenaltyKickKicker::SShoot::SShoot(my_context ctx) : my_base(ctx) {}
+// BhvPenaltyKickKicker::SShoot::SShoot(my_context ctx) : my_base(ctx) {}
 
-BhvPenaltyKickKicker::SShoot::~SShoot() = default;
+// BhvPenaltyKickKicker::SShoot::~SShoot() = default;
 
-sc::result BhvPenaltyKickKicker::SShoot::react(const Transition & /*unused*/)
-{
-#ifdef DEBUG_LOG
-    dlog.addText(Logger::ACTION, ": SShoot: Transition event received");
-#endif
-    return transit<J3Kicker>();
-}
+// sc::result BhvPenaltyKickKicker::SShoot::react(const Transition & /*unused*/)
+// {
+// #ifdef DEBUG_LOG
+//     dlog.addText(Logger::ACTION, ": SShoot: Transition event received");
+// #endif
+//     return transit<J3Kicker>();
+// }
 
-BhvPenaltyKickKicker::J3Kicker::J3Kicker(my_context ctx) : my_base(ctx) {}
+// BhvPenaltyKickKicker::J3Kicker::J3Kicker(my_context ctx) : my_base(ctx) {}
 
-BhvPenaltyKickKicker::J3Kicker::~J3Kicker() = default;
+// BhvPenaltyKickKicker::J3Kicker::~J3Kicker() = default;
 
-sc::result BhvPenaltyKickKicker::J3Kicker::react(const Transition & /*unused*/)
-{
-#ifdef DEBUG_LOG
-    dlog.addText(Logger::ACTION, ": J3Kicker: Transition event received");
-#endif
-    auto *agent = context<KickerStm>().getAgent();
-    bool canShootToGoal = false;
+// sc::result BhvPenaltyKickKicker::J3Kicker::react(const Transition & /*unused*/)
+// {
+// #ifdef DEBUG_LOG
+//     dlog.addText(Logger::ACTION, ": J3Kicker: Transition event received");
+// #endif
+//     auto *agent = context<KickerStm>().getAgent();
+//     bool canShootToGoal = false;
 
-    if (!ServerParam::i().penAllowMultKicks())
-    {
-        canShootToGoal |= doOneKickShoot(agent);
-    }
+//     if (!ServerParam::i().penAllowMultKicks())
+//     {
+//         canShootToGoal |= doOneKickShoot(agent);
+//     }
 
-    if (doGetBall(agent))
-    {
-        BhvPenaltyKickKicker::KickerStm::stopTransition = true;
-        return transit<SDribble>();
-    }
+//     if (doGetBall(agent))
+//     {
+//         BhvPenaltyKickKicker::KickerStm::stopTransition = true;
+//         return transit<SDribble>();
+//     }
 
-    canShootToGoal |= doShoot(agent);
+//     canShootToGoal |= doShoot(agent);
 
-    if (canShootToGoal)
-    {
-        BhvPenaltyKickKicker::KickerStm::stopTransition = true;
-        return transit<J4Kicker>();
-    }
+//     if (canShootToGoal)
+//     {
+//         BhvPenaltyKickKicker::KickerStm::stopTransition = true;
+//         return transit<J4Kicker>();
+//     }
 
-    if (!canShootToGoal)
-    {
-        return transit<SDribble>();
-    }
+//     if (!canShootToGoal)
+//     {
+//         return transit<SDribble>();
+//     }
 
-    return transit<UndefinedStateKicker>();
-}
+//     return transit<UndefinedStateKicker>();
+// }
 
-BhvPenaltyKickKicker::SDribble::SDribble(my_context ctx) : my_base(ctx)
-{
-    if (BhvPenaltyKickKicker::KickerStm::stopTransition)
-    {
-        return;
-    }
+// BhvPenaltyKickKicker::SDribble::SDribble(my_context ctx) : my_base(ctx)
+// {
+//     if (BhvPenaltyKickKicker::KickerStm::stopTransition)
+//     {
+//         return;
+//     }
 
-    auto *agent = context<KickerStm>().getAgent();
-    doDribble(agent);
-}
+//     auto *agent = context<KickerStm>().getAgent();
+//     doDribble(agent);
+// }
 
-BhvPenaltyKickKicker::SDribble::~SDribble() = default;
+// BhvPenaltyKickKicker::SDribble::~SDribble() = default;
 
-sc::result BhvPenaltyKickKicker::SDribble::react(const Transition & /*unused*/)
-{
-#ifdef DEBUG_LOG
-    dlog.addText(Logger::ACTION, ": SDribble: Transition event received");
-#endif
-    BhvPenaltyKickKicker::KickerStm::stopTransition = true;
-    return transit<J4Kicker>();
-}
+// sc::result BhvPenaltyKickKicker::SDribble::react(const Transition & /*unused*/)
+// {
+// #ifdef DEBUG_LOG
+//     dlog.addText(Logger::ACTION, ": SDribble: Transition event received");
+// #endif
+//     BhvPenaltyKickKicker::KickerStm::stopTransition = true;
+//     return transit<J4Kicker>();
+// }
 
-BhvPenaltyKickKicker::J4Kicker::J4Kicker(my_context ctx) : my_base(ctx) {}
+// BhvPenaltyKickKicker::J4Kicker::J4Kicker(my_context ctx) : my_base(ctx) {}
 
-BhvPenaltyKickKicker::J4Kicker::~J4Kicker() = default;
+// BhvPenaltyKickKicker::J4Kicker::~J4Kicker() = default;
 
-sc::result BhvPenaltyKickKicker::J4Kicker::react(const Transition & /*unused*/)
-{
-#ifdef DEBUG_LOG
-    dlog.addText(Logger::ACTION, ": J4Kicker: Transition event received");
-#endif
-    return transit<SUpdateWorldModelKicker>();
-}
+// sc::result BhvPenaltyKickKicker::J4Kicker::react(const Transition & /*unused*/)
+// {
+// #ifdef DEBUG_LOG
+//     dlog.addText(Logger::ACTION, ": J4Kicker: Transition event received");
+// #endif
+//     return transit<SUpdateWorldModelKicker>();
+// }
 
-BhvPenaltyKickKicker::UndefinedStateKicker::UndefinedStateKicker(my_context ctx) : my_base(ctx) {}
+// BhvPenaltyKickKicker::UndefinedStateKicker::UndefinedStateKicker(my_context ctx) : my_base(ctx) {}
 
-BhvPenaltyKickKicker::UndefinedStateKicker::~UndefinedStateKicker() = default;
+// BhvPenaltyKickKicker::UndefinedStateKicker::~UndefinedStateKicker() = default;
 
-sc::result BhvPenaltyKickKicker::UndefinedStateKicker::react(const Transition & /*unused*/)
-{
-#ifdef DEBUG_LOG
-    dlog.addText(Logger::ACTION, ": UndefinedStateKicker: Transition event received");
-#endif
-    return transit<UndefinedStateKicker>();
-}
+// sc::result BhvPenaltyKickKicker::UndefinedStateKicker::react(const Transition & /*unused*/)
+// {
+// #ifdef DEBUG_LOG
+//     dlog.addText(Logger::ACTION, ": UndefinedStateKicker: Transition event received");
+// #endif
+//     return transit<UndefinedStateKicker>();
+// }
 
-void trigger(BhvPenaltyKickKicker::KickerStm &machine)
-{
-    while (!machine.terminated() && !BhvPenaltyKickKicker::KickerStm::stopTransition)
-    {
-        machine.process_event(BhvPenaltyKickKicker::Transition());
-    }
-}
+// void trigger(BhvPenaltyKickKicker::KickerStm &machine)
+// {
+//     while (!machine.terminated() && !BhvPenaltyKickKicker::KickerStm::stopTransition)
+//     {
+//         machine.process_event(BhvPenaltyKickKicker::Transition());
+//     }
+// }
 
-bool BhvPenaltyKickKicker::execute(PlayerAgent *agent)
-{
-#ifdef DEBUG_LOG
-    dlog.addText(Logger::ACTION, ": Starting penalty kick execution for kicker");
-#endif
+// bool BhvPenaltyKickKicker::execute(PlayerAgent *agent)
+// {
+// #ifdef DEBUG_LOG
+//     dlog.addText(Logger::ACTION, ": Starting penalty kick execution for kicker");
+// #endif
 
-    const WorldModel &wm = agent->world();
-    const PenaltyKickState *state = wm.penaltyKickState();
-    int penaltyTakerOrder = (state->ourTakerCounter() - 1) % 11;
-    int currTakerUnum = 11 - penaltyTakerOrder;
+//     const WorldModel &wm = agent->world();
+//     const PenaltyKickState *state = wm.penaltyKickState();
+//     int penaltyTakerOrder = (state->ourTakerCounter() - 1) % 11;
+//     int currTakerUnum = 11 - penaltyTakerOrder;
 
-    if (state->currentTakerSide() != wm.ourSide() || agent->world().self().unum() != currTakerUnum)
-    {
-        goToWaitPosition(agent);
-        return true;
-    }
+//     if (state->currentTakerSide() != wm.ourSide() || agent->world().self().unum() != currTakerUnum)
+//     {
+//         goToWaitPosition(agent);
+//         return true;
+//     }
 
-    static KickerStm kickerMachine(agent);
-    static bool initialized = false;
+//     static KickerStm kickerMachine(agent);
+//     static bool initialized = false;
 
-    if (!initialized)
-    {
-        initialized = true;
-        kickerMachine.initiate();
-    }
+//     if (!initialized)
+//     {
+//         initialized = true;
+//         kickerMachine.initiate();
+//     }
 
-    trigger(kickerMachine); // should be in another thread.
-    BhvPenaltyKickKicker::KickerStm::stopTransition = false;
-    return true;
-}
+//     trigger(kickerMachine); // should be in another thread.
+//     BhvPenaltyKickKicker::KickerStm::stopTransition = false;
+//     return true;
+// }

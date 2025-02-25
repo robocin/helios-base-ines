@@ -1,4 +1,5 @@
 
+#include "rcsc/geom/vector_2d.h"
 #include <boost/statechart/custom_reaction.hpp>
 #include <boost/statechart/termination.hpp>
 
@@ -14,67 +15,61 @@
 
 namespace sc = boost::statechart;
 
+namespace AuxFunc {
+    void moveToBallPosition(rcsc::PlayerAgent *agent);
+    void goToWaitPosition(rcsc::PlayerAgent *agent);
+    bool doOneKickShoot(rcsc::PlayerAgent *agent);
+    bool doGetBall(rcsc::PlayerAgent *agent);
+    bool getShootTarget(const rcsc::PlayerAgent *agent, rcsc::Vector2D *point, double *firstSpeed);
+    bool doShoot(rcsc::PlayerAgent *agent);
+    bool doDribble(rcsc::PlayerAgent *agent);
+}
+
 namespace RSFunc {
     bool isInsidePenaltyArea(const rcsc::BallObject &ball);
     bool isInCatchableDistance(const rcsc::BallObject &ball);
     bool isCatchable(const rcsc::WorldModel &wm);
     bool checkTackle(double prob);
-    Point calculateBlockPoint(Point ball, Point goalPos);
+    rcsc::Vector2D calculateBlockPoint(rcsc::Vector2D ballPos);
 }
-
-typedef struct point {
-    int x;
-    int y;
-} Point;
 
 namespace RSOutput {
     bool doCatch(rcsc::PlayerAgent* agent);
     bool doClearBall(rcsc::PlayerAgent* agent);
     bool doTackle(rcsc::PlayerAgent *agent);
-    Point getBall(rcsc::PlayerAgent *agent) {
-        auto pos = agent->world().ball().pos();
-        Point _pos = {pos.x, pos.y};
-        return _pos;
-    }
 }
 
 
 class BhvPenaltyKickGoalie : rcsc::SoccerBehavior {
-   public:
+
+private:
+
+
+public:
+// state machine variables
+    static bool insideGoalieArea;
+    static bool bodyInterceptAct;
+    static bool tacklePossible;
+    static bool catchable;
+    static rcsc::Vector2D blockPoint;
+
+    static rcsc::PlayerAgent* agent;
+
     bool execute(rcsc::PlayerAgent* agent) override;
 
     struct InitialStateGoalie;
     struct Transition : sc::event<Transition> {};
 
     struct GoalieOperation : sc::state_machine<GoalieOperation, InitialStateGoalie> {
-        explicit GoalieOperation(rcsc::PlayerAgent* agent) : mAgent(agent) {}
+        explicit GoalieOperation(rcsc::PlayerAgent* _agent) {
+            agent = _agent;
+        }
         ~GoalieOperation() override = default;
-
-        [[nodiscard]] rcsc::PlayerAgent* getAgent() const { return mAgent; }
-        [[nodiscard]] bool* isInsideGoalieArea() const { return insideGoalieArea; }
-        [[nodiscard]] bool* isBodyInterceptAct() const { return bodyInterceptAct; }
-        [[nodiscard]] bool* isTacklePossible() const { return tacklePossible; }
-        [[nodiscard]] bool* isCatchable() const { return catchable; }
-        [[nodiscard]] Point* getBlockPoint() const { return blockPoint; }
-
-        public:
-            static inline bool stopTransition {false};
-            rcsc::PlayerAgent* mAgent;
-            int count;
-            
-        private:
-            bool *insideGoalieArea;
-            bool *bodyInterceptAct;
-            bool *tacklePossible;
-            bool *catchable;
-            Point *blockPoint;
-
     };
 
     struct InitialStateGoalie : sc::state<InitialStateGoalie, GoalieOperation> {
         using reactions = sc::custom_reaction<Transition>;
         explicit InitialStateGoalie(my_context ctx) : my_base(ctx) {};
-        ~InitialStateGoalie() override = default;
         sc::result react(const Transition&) {
             return transit<SdoCatch>();
         };
@@ -83,14 +78,8 @@ class BhvPenaltyKickGoalie : rcsc::SoccerBehavior {
     struct SdoCatch : sc::state<SdoCatch, GoalieOperation> {
         using reactions = sc::custom_reaction<Transition>;
         SdoCatch(my_context ctx) : my_base(ctx) {
-            rcsc::PlayerAgent *agent = context<GoalieOperation>().getAgent();
-            bool* insideGoalieArea = context<GoalieOperation>().isInsideGoalieArea();
-            *insideGoalieArea = RSFunc::isInsidePenaltyArea(agent->world().ball());
-
-            bool* catchable = context<GoalieOperation>().isCatchable();
-            *catchable = RSFunc::isCatchable(agent->world());
+            catchable = RSFunc::isCatchable(agent->world());
         };
-        ~SdoCatch() override;
         sc::result react(const Transition&){
             return transit<J1Goalie>();
         };
@@ -98,26 +87,23 @@ class BhvPenaltyKickGoalie : rcsc::SoccerBehavior {
 
     struct J1Goalie : sc::state<J1Goalie, GoalieOperation> {
         using reactions = sc::custom_reaction<Transition>;
-        explicit J1Goalie(my_context ctx);
-        ~J1Goalie() override = default;
+        /*explicit J1Goalie(my_context ctx);*/
+        /*~J1Goalie() override = default;*/
         sc::result react(const Transition&) {
-            rcsc::PlayerAgent* agent = context<GoalieOperation>().getAgent();
-            bool* insideGoalieArea = context<GoalieOperation>().isInsideGoalieArea();
-            bool* catchable = context<GoalieOperation>().isCatchable();
-
-            if(*catchable && *insideGoalieArea) {
+            if(catchable && insideGoalieArea) {
                 RSOutput::doCatch(agent);
                 return transit<JFinal>();
+            } else if(!(catchable && insideGoalieArea)) {
+                return transit<SClearBall>();
             }
 
-            return transit<SClearBall>();
+            return transit<UndefinedStateGoalie>();
         };
     };
 
     struct JFinal : sc::state<JFinal, GoalieOperation> {
         using reactions = sc::custom_reaction<Transition>;
         explicit JFinal(my_context ctx) : my_base(ctx) {};
-        ~JFinal() override;
         sc::result react(const Transition&) {
             return transit<FinalStateGoalie>();
         };
@@ -133,7 +119,7 @@ class BhvPenaltyKickGoalie : rcsc::SoccerBehavior {
         sc::result react(const Transition&) {
             return terminate();
         };
-    }; 
+    };
 
     struct SClearBall: sc::state<SClearBall, GoalieOperation> {
         using reactions = sc::custom_reaction<Transition>;
@@ -149,44 +135,38 @@ class BhvPenaltyKickGoalie : rcsc::SoccerBehavior {
         explicit J2Goalie(my_context ctx) : my_base(ctx) {};
         ~J2Goalie() override;
         sc::result react(const Transition&) {
-            auto agent = context<GoalieOperation>().getAgent();
-
             if(!agent->world().self().isKickable()) {
-                return transit<SDoTackle>();  
+                return transit<SDoTackle>();
             } else if(agent->world().self().isKickable()) {
                 RSOutput::doClearBall(agent);
                 return transit<JFinal>();
-
             }
+
+            return transit<UndefinedStateGoalie>();
         };
     };
 
     struct SDoTackle : sc::state<SDoTackle, GoalieOperation> {
         using reactions = sc::custom_reaction<Transition>;
         explicit SDoTackle(my_context ctx) : my_base(ctx) {
-            rcsc::PlayerAgent *agent = context<GoalieOperation>().getAgent();
-            bool* tacklePossible = context<GoalieOperation>().isTacklePossible();
-            *tacklePossible = RSFunc::checkTackle(agent->world().self().tackleProbability());
+            tacklePossible = RSFunc::checkTackle(agent->world().self().tackleProbability());
         };
+
         ~SDoTackle() override;
         sc::result react(const Transition&) {
             return transit<J3Goalie>();
         };
     };
 
-    struct J3Goalie: sc::state<J3Goalie, GoalieOperation> { // EXEC JUNCTION
+    struct J3Goalie: sc::state<J3Goalie, GoalieOperation> {
         using reactions = sc::custom_reaction<Transition>;
         explicit J3Goalie(my_context ctx) : my_base(ctx){};
-        ~J3Goalie() override = default;
         sc::result react(const Transition&) {
-            rcsc::PlayerAgent* agent = context<GoalieOperation>().getAgent();
-            bool *tacklePossible = context<GoalieOperation>().isTacklePossible();
-
-            if(*tacklePossible) {
+            if(tacklePossible) {
                 RSOutput::doTackle(agent);
                 return transit<JFinal>();
-            } else if(! *tacklePossible) {
-                return transit<DoMove>();    
+            } else if(! tacklePossible) {
+                return transit<DoMove>();
             }
 
             return transit<UndefinedStateGoalie>();;
@@ -196,11 +176,8 @@ class BhvPenaltyKickGoalie : rcsc::SoccerBehavior {
     struct DoMove : sc::state<DoMove, GoalieOperation> {
         using reactions = sc::custom_reaction<Transition>;
         explicit DoMove(my_context ctx): my_base(ctx) {
-            rcsc::PlayerAgent *agent = context<GoalieOperation>().getAgent();
-            Point* blockPoint = context<GoalieOperation>().getBlockPoint();
-            *blockPoint = RSFunc::calculateBlockPoint(RSOutput::getBall(agent), Point{0, 0});
+            blockPoint = RSFunc::calculateBlockPoint(agent->world().ball().pos());
         };
-        ~DoMove() override;
         sc::result react(const Transition&) {
             return transit<JFinal>();
         }
@@ -208,10 +185,7 @@ class BhvPenaltyKickGoalie : rcsc::SoccerBehavior {
 
     struct UndefinedStateGoalie : sc::state<UndefinedStateGoalie, GoalieOperation> {
         using reactions = sc::custom_reaction<Transition>;
-        explicit UndefinedStateGoalie(my_context ctx);
-        ~UndefinedStateGoalie() override;
+        explicit UndefinedStateGoalie(my_context ctx): my_base(ctx) {};
         sc::result react(const Transition&);
     };
-
-
 };
