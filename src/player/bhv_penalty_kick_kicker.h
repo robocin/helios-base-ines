@@ -24,16 +24,16 @@ class BhvPenaltyKickKicker : rcsc::SoccerBehavior {
         ~KickerOperation() override = default;
 
         [[nodiscard]] rcsc::PlayerAgent* getAgent() const { return mAgent; }
-        [[nodiscard]] bool* kickable() const { return isKickable; }
-        [[nodiscard]] bool* canShootToGoal() const { return canShoot; }
+        [[nodiscard]] bool kickable() const { return isKickable; }
+        [[nodiscard]] bool canShootToGoal() const { return canShoot; }
 
        public:
         static inline bool stopTransition {false};
         rcsc::PlayerAgent* mAgent;
 
         private:
-            bool *isKickable;
-            bool *canShoot;
+            bool isKickable;
+            bool canShoot;
     };
 
     struct InitialStateKicker : sc::state<InitialStateKicker, KickerOperation> {

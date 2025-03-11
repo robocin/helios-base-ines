@@ -21,6 +21,8 @@
 #include "basic_actions/body_stop_ball.h"
 
 #include <rcsc/common/logger.h>
+#include <rcsc/game_mode.h>
+#include <rcsc/game_time.h>
 #include <rcsc/player/penalty_kick_state.h>
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/world_model.h>
@@ -636,7 +638,7 @@ sc::result BhvPenaltyKickKicker::FinalStateKicker::react(const Transition & /*un
 #ifdef DEBUG_LOG
     dlog.addText(Logger::ACTION, ": FinalStateKicker: Transition event received");
 #endif
-    return terminate()
+    return terminate();
 }
 
 BhvPenaltyKickKicker::SGoToBall::SGoToBall(my_context ctx) : my_base(ctx) {}
@@ -648,9 +650,7 @@ sc::result BhvPenaltyKickKicker::SGoToBall::react(const Transition & /*unused*/)
 #ifdef DEBUG_LOG
     dlog.addText(Logger::ACTION, ": SGoToBall: Transition event received");
 #endif
-    bool* isKickable = context<KickerOperation>().kickable();
-    *isKickable = isKickable()
-
+    bool isKickable = context<KickerOperation>().kickable();
     return transit<J0Kicker>();
 }
 
@@ -664,15 +664,15 @@ sc::result BhvPenaltyKickKicker::J0Kicker::react(const Transition & /*unused*/)
     dlog.addText(Logger::ACTION, ": J0Kicker: Transition event received");
 #endif
     auto *agent = context<KickerOperation>().getAgent();
-    bool *isKickable = context<KickerOperation>.kickable();
 
-    if (*isKickable) {
-        return transit<SShoot>();
-    }
-
-    if (!*isKickable) {
+    const WorldModel &wm = agent->world();
+    if (wm.gameMode().type() == GameMode::PenaltySetup_) {
         moveToBallPosition(agent);
         return transit<J4Kicker>();
+    }
+
+    if (wm.gameMode().type() != GameMode::PenaltySetup_) {
+        return transit<SShoot>();
     }
 
     return transit<UndefinedStateKicker>();
@@ -763,10 +763,8 @@ sc::result BhvPenaltyKickKicker::UndefinedStateKicker::react(const Transition & 
     return transit<UndefinedStateKicker>();
 }
 
-void trigger(BhvPenaltyKickKicker::KickerOperation &machine)
-{
-    while (!machine.terminated())
-    {
+void trigger(BhvPenaltyKickKicker::KickerOperation &machine) {
+    while (!machine.terminated()) {
         machine.process_event(BhvPenaltyKickKicker::Transition());
     }
 }
@@ -789,14 +787,8 @@ bool BhvPenaltyKickKicker::execute(PlayerAgent *agent)
     }
 
     static KickerOperation kickerMachine(agent);
-    static bool initialized = false;
-
-    if (!initialized)
-    {
-        initialized = true;
-        kickerMachine.initiate();
-    }
-
+    kickerMachine.initiate();
+    std::cout << "Time cycle: " << wm.time().cycle() << " curr taker: "<< currTakerUnum << std::endl;
     trigger(kickerMachine); // should be in another thread.
     return true;
 }
