@@ -42,7 +42,9 @@
 #include "keepaway_communication.h"
 #include "sample_freeform_message_parser.h"
 
-#include "bhv_penalty_kick.h"
+#include "bhv_penalty_kick_kicker.h"
+#include "bhv_penalty_kick_rc.h"
+
 #include "bhv_set_play.h"
 #include "bhv_set_play_kick_in.h"
 #include "bhv_set_play_indirect_free_kick.h"
@@ -297,7 +299,6 @@ SamplePlayer::actionImpl()
         return;
     }
 
-
     //
     // penalty kick mode
     //
@@ -305,7 +306,13 @@ SamplePlayer::actionImpl()
     {
         dlog.addText( Logger::TEAM,
                       __FILE__": penalty kick" );
-        Bhv_PenaltyKick().execute( this );
+        auto agent = this;
+        if(agent->world().self().goalie()) {
+            Bhv_PenaltyKick().execute( this );
+        } else {
+            BhvPenaltyKickKicker().execute( this );
+        }
+        
         return;
     }
 
