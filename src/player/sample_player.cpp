@@ -44,6 +44,7 @@
 
 #include "bhv_penalty_kick_kicker.h"
 #include "bhv_penalty_kick_rc.h"
+#include "bhv_penalty_kick_goalie.h"
 
 #include "bhv_set_play.h"
 #include "bhv_set_play_kick_in.h"
@@ -308,7 +309,7 @@ SamplePlayer::actionImpl()
                       __FILE__": penalty kick" );
         auto agent = this;
         if(agent->world().self().goalie()) {
-            Bhv_PenaltyKick().execute( this );
+            BhvPenaltyKickGoalie().execute( this );
         } else {
             BhvPenaltyKickKicker().execute( this );
         }
